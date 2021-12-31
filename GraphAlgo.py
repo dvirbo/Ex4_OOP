@@ -1,11 +1,15 @@
+import json
+
+from Edge import edge
+from Node import node
+
+
 class graphAlgo:
 
     Nodes = {}
-    Edges = {}
 
     def __init__(self):
         self.Nodes = {}
-        self.Edges = {}
 
     def load_json(self, file_name: str):
         """
@@ -19,18 +23,21 @@ class graphAlgo:
                 my_dict = json.load(f)
                 list_Nodes = my_dict["Nodes"]
                 list_Edges = my_dict["Edges"]
+
                 for v in list_Nodes:
                     if len(v) == 1:
                         jpos = None
                     else:
                         jpos = tuple(map(float, str(v["pos"]).split(",")))
                     id_num = v["id"]
-                    node = Node(id_num, jpos)
-                    self.Nodes.apeand(node)
+                    nd = node(id_num, jpos)
+                    self.Nodes[id_num] = nd
 
                 for i in list_Edges:
-                    edge = Edge(src=i["src"], dest=i["dest"], weight=i["w"])
-                    self.Edges.apeand(edge)
+                    ed = edge(src=i["src"], dest=i["dest"], weight=i["w"])
+                    self.Nodes[ed.src].add_out_edge(ed)
+                    self.Nodes[ed.dest].add_in_edge(ed)
+
         except FileNotFoundError:
             flag = False
             raise FileNotFoundError

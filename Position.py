@@ -13,9 +13,3 @@ class position(tuple):
         self.x = pos[0]
         self.y = pos[1]
         self.z = pos[2]
-
-    def __repr__(self):
-        return f"{self.x}, {self.y}, {self.z}"
-
-    def __str__(self):
-        return f"{self.x}, {self.y}, {self.z}"
