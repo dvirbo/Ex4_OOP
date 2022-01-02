@@ -1,7 +1,7 @@
 import math
 
 
-class position(tuple):
+class Position(tuple):
     """
     this class represent a position point in 3D dimension
     """

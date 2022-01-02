@@ -9,7 +9,7 @@ import json
 from pygame import gfxdraw
 import pygame
 from pygame import *
-from GraphAlgo import graphAlgo
+from graphAlgo import GraphAlgo
 
 # init pygame
 WIDTH, HEIGHT = 1080, 720
@@ -33,7 +33,7 @@ pokemons_obj = json.loads(pokemons, object_hook=lambda d: SimpleNamespace(**d))
 print(pokemons)
 
 graph_json = client.get_graph()
-main_graph = graphAlgo()
+main_graph = GraphAlgo()
 main_graph.load_json(graph_json)
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
