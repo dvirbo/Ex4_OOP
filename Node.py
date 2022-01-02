@@ -64,3 +64,4 @@ class node:
                     self.inEdges[id1][2] = weight
             else:
                 self.inEdges[id1] = e
+

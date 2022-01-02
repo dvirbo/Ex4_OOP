@@ -13,6 +13,7 @@ class graphAlgo:
     def __init__(self):
         self.Nodes = {}
         self.distances = {}
+        self.up_down = {}
 
     def load_json(self, file_name: str):
         """
@@ -22,24 +23,36 @@ class graphAlgo:
                         """
         flag = True
         try:
-            with open(file_name, "r") as f:
-                my_dict = json.load(f)
-                list_Nodes = my_dict["Nodes"]
-                list_Edges = my_dict["Edges"]
+            my_dict = json.loads(file_name)
+            list_Nodes = my_dict["Nodes"]
+            list_Edges = my_dict["Edges"]
 
-                for v in list_Nodes:
-                    if len(v) == 1:
-                        jpos = None
-                    else:
-                        jpos = tuple(map(float, str(v["pos"]).split(",")))
+            for v in list_Nodes:
+                if len(v) == 1:
+                    jpos = None
+                else:
+                    jpos = tuple(map(float, str(v["pos"]).split(",")))
                     id_num = v["id"]
                     nd = node(id_num, jpos)
                     self.Nodes[id_num] = nd
 
-                for i in list_Edges:
-                    ed = edge(src=i["src"], dest=i["dest"], weight=i["w"])
-                    self.Nodes[ed.src].add_out_edge(ed)
-                    self.Nodes[ed.dest].add_in_edge(ed)
+            for i in list_Edges:
+                ed = edge(src=i["src"], dest=i["dest"], weight=i["w"])
+                src = ed.src
+                dest = ed.dest
+
+                src_pos = self.Nodes[src].pos
+                dest_pos = self.Nodes[dest].pos
+
+                if src_pos.y < dest_pos.y:
+                    ed.set_tag(1)
+                    self.up_down[1].apeand(ed)
+                elif src_pos.y > dest_pos.y:
+                    ed.set_tag(-1)
+                    self.up_down[-1].apeand(ed)
+
+                self.Nodes[src].add_out_edge(ed)
+                self.Nodes[dest].add_in_edge(ed)
 
         except FileNotFoundError:
             flag = False
