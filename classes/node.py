@@ -1,9 +1,6 @@
-import sre_constants
-
 from numpy import random
-
-from edge import Edge
-from Position import position
+from classes.edge import Edge
+from classes.position import Position
 
 
 class Node:
@@ -18,11 +15,11 @@ class Node:
         self.inEdges = {}
         self.outEdges = {}
         if pos is not None:
-            self.pos = position(pos)
+            self.pos = Position(pos)
         else:
             x = random.uniform(0.0, 100)
             y = random.uniform(0.0, 100)
-            p = position((x, y, 0))
+            p = Position((x, y, 0))
             self.pos = p
 
     def set_tag(self, t: int):

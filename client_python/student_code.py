@@ -9,8 +9,12 @@ import json
 from pygame import gfxdraw
 import pygame
 from pygame import *
+from pygame.constants import RESIZABLE
+from client_python import button
 from graphAlgo import GraphAlgo
+import time
 
+start = time.time()
 # init pygame
 WIDTH, HEIGHT = 1080, 720
 
@@ -21,9 +25,33 @@ HOST = '127.0.0.1'
 pygame.init()
 
 screen = display.set_mode((WIDTH, HEIGHT), depth=32, flags=RESIZABLE)
+pygame.display.set_caption('Ex4')
+# counter:
+counter_value = 0
+font = pygame.font.SysFont("verdana", 20)  # step 1 - load a font
+
+# background:
+background = pygame.image.load('pacmen.jpg')
+
+# load button images
+exit_img = pygame.image.load('exit_btn.png').convert_alpha()
+
+# create button instances
+exit_button = button.Button(0.5, 60, exit_img, 0.8)
+
+
+def show_score():
+    count = font.render("Move count :" + str(counter_value), True, (255, 255, 255))
+    screen.blit(count, (0.5, 0.5))
+
+
+def show_time():
+    timer = font.render("Run time: " + str(time.time() - start), True, (255, 255, 255))
+    screen.blit(timer, (0.5, 30))
+
+
 clock = pygame.time.Clock()
 pygame.font.init()
-
 client = Client()
 client.start_connection(HOST, PORT)
 
@@ -33,8 +61,10 @@ pokemons_obj = json.loads(pokemons, object_hook=lambda d: SimpleNamespace(**d))
 print(pokemons)
 
 graph_json = client.get_graph()
+
 main_graph = GraphAlgo()
 main_graph.load_json(graph_json)
+main_graph.load_Pokemon(pokemons)
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 # load the json string into SimpleNamespace Object
@@ -46,7 +76,7 @@ for n in graph.Nodes:
     x, y, _ = n.pos.split(',')
     n.pos = SimpleNamespace(x=float(x), y=float(y))
 
- # get data proportions
+# get data proportions
 min_x = min(list(graph.Nodes), key=lambda n: n.pos.x).pos.x
 min_y = min(list(graph.Nodes), key=lambda n: n.pos.y).pos.y
 max_x = max(list(graph.Nodes), key=lambda n: n.pos.x).pos.x
@@ -58,7 +88,7 @@ def scale(data, min_screen, max_screen, min_data, max_data):
     get the scaled data with proportions min_data, max_data
     relative to min and max screen dimentions
     """
-    return ((data - min_data) / (max_data-min_data)) * (max_screen - min_screen) + min_screen
+    return ((data - min_data) / (max_data - min_data)) * (max_screen - min_screen) + min_screen
 
 
 # decorate scale with the correct values
@@ -67,7 +97,7 @@ def my_scale(data, x=False, y=False):
     if x:
         return scale(data, 50, screen.get_width() - 50, min_x, max_x)
     if y:
-        return scale(data, 50, screen.get_height()-50, min_y, max_y)
+        return scale(data, 50, screen.get_height() - 50, min_y, max_y)
 
 
 radius = 15
@@ -86,6 +116,9 @@ The GUI and the "algo" are mixed - refactoring using MVC design pattern is requi
 """
 
 while client.is_running() == 'true':
+
+    if exit_button.draw(screen): # need to check why isn't work..
+        print('EXIT')
     pokemons = json.loads(client.get_pokemons(),
                           object_hook=lambda d: SimpleNamespace(**d)).Pokemons
     pokemons = [p.Pokemon for p in pokemons]
@@ -108,7 +141,8 @@ while client.is_running() == 'true':
 
     # refresh surface
     screen.fill(Color(0, 0, 0))
-
+    # Background image:
+    screen.blit(background, (0, 0))
     # draw nodes
     for n in graph.Nodes:
         x = my_scale(n.pos.x, x=True)
@@ -147,9 +181,12 @@ while client.is_running() == 'true':
                            (int(agent.pos.x), int(agent.pos.y)), 10)
     # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
     for p in pokemons:
+        # need to send the pos of the poc to function that check if the poc is on d<s or else
         pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
 
     # update screen changes
+    show_score()
+    show_time()
     display.update()
 
     # refresh rate
@@ -160,9 +197,12 @@ while client.is_running() == 'true':
         if agent.dest == -1:
             next_node = (agent.src - 1) % len(graph.Nodes)
             client.choose_next_edge(
-                '{"agent_id":'+str(agent.id)+', "next_node_id":'+str(next_node)+'}')
+                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
             ttl = client.time_to_end()
             print(ttl, client.get_info())
 
+    counter_value += 1
+
     client.move()
+
 # game over:
