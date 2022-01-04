@@ -58,12 +58,11 @@ client.start_connection(HOST, PORT)
 pokemons = client.get_pokemons()
 pokemons_obj = json.loads(pokemons, object_hook=lambda d: SimpleNamespace(**d))
 
-print(pokemons)
-
 graph_json = client.get_graph()
 
 main_graph = GraphAlgo()
 main_graph.load_json(graph_json)
+# load all the poc to the main- we need to update them every "move"
 main_graph.load_Pokemon(pokemons)
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
@@ -182,7 +181,12 @@ while client.is_running() == 'true':
     # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
     for p in pokemons:
         # need to send the pos of the poc to function that check if the poc is on d<s or else
-        pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+        if p.type == -1:
+            pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+        else:
+            pygame.draw.circle(screen, Color(255, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+
+
 
     # update screen changes
     show_score()

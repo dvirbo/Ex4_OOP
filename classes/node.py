@@ -62,3 +62,8 @@ class Node:
             else:
                 self.inEdges[id1] = e
 
+    def __str__(self) -> str:
+        return f"""({self.key},{self.tag},{self.pos}) """
+
+    def __repr__(self) -> str:
+        return f"""({self.key},{self.tag},{self.pos}) """

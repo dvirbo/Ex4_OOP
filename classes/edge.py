@@ -8,3 +8,9 @@ class Edge:
 
     def set_tag(self, t: int):
         self.tag = t
+
+    def __str__(self) -> str:
+        return f"""({self.src} ,{self.dest} ,{self.weight}) """
+
+    def __repr__(self) -> str:
+        return f"""({self.src} ,{self.dest} ,{self.weight}) """

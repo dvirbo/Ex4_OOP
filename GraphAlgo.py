@@ -1,10 +1,11 @@
 import json
+import math
 import sys
+from math import sqrt
 
 from classes.edge import Edge
 from classes.node import Node
 from queue import PriorityQueue
-
 from classes.pokemon import Pokemons
 
 
@@ -16,7 +17,9 @@ class GraphAlgo:
     def __init__(self):
         self.Nodes = {}
         self.distances = {}
-        self.up_down = {}
+        self.up = []  # (src= 10 , dest= 0 , w= 1.1761238717867548)
+        self.down = []
+        self.pokemons = []
 
     def load_json(self, file_name: str):
         """
@@ -49,10 +52,10 @@ class GraphAlgo:
 
                 if src_pos.y < dest_pos.y:
                     ed.set_tag(1)
-                    self.up_down[1].apeand(ed)
+                    self.up.insert(0, ed)
                 elif src_pos.y > dest_pos.y:
                     ed.set_tag(-1)
-                    self.up_down[-1].apeand(ed)
+                    self.down.insert(0, ed)  # down -
 
                 self.Nodes[src].add_out_edge(ed)
                 self.Nodes[dest].add_in_edge(ed)
@@ -75,15 +78,64 @@ class GraphAlgo:
             for p in my_dict["Pokemons"]:
                 value = p["Pokemon"]['value']
                 type = p["Pokemon"]['type']
-                jpos = p["Pokemon"]['pos']
+                jpos = tuple(map(float, str(p["Pokemon"]['pos']).split(",")))
+                edge = self.find_edge(jpos, type)
                 poc = Pokemons(value, type, jpos)
-                self.pokemons[p] = poc
+                poc.edge = edge
+                self.pokemons.append(poc)
 
         except FileNotFoundError:
             flag = False
             raise FileNotFoundError
         finally:
             return flag
+
+    def is_between(self, a, c, b):
+        """
+        check if the point (c) is between a --> b
+        :param a: src
+        :param c: check point
+        :param b: dest
+        :return: true / false <bound method GraphAlgo.dist of <graphAlgo.GraphAlgo object at 0x0000023904020BB0>>
+        """
+        return math.isclose(self.dist(a, c) + self.dist(c, b), self.dist(a, b), abs_tol=0.00000000000001)
+
+    def dist(self, a, b):
+        """
+        calculate the dist between them (a & b)
+        """
+        return sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+    def find_edge(self, pocPos: tuple, type: int):
+        """
+        this function find the edge (sec + dest) that the Pokemon is on
+        :param pocPos: position of the Pokemon
+        :param type: up / down
+        :return: the edge that the Pokemon is on
+        """
+        if type == -1:
+            for i in self.down:
+                src = i.src
+                dest = i.dest
+                pSrc = self.Nodes.get(src).pos
+                pDest = self.Nodes.get(dest).pos
+                ans = self.is_between(pSrc, pocPos, pDest)
+                if ans:
+                    return i
+                else:
+                    continue
+        else:
+            for i in self.up:
+                src = i.src
+                dest = i.dest
+                pSrc = self.Nodes.get(src).pos
+                pDest = self.Nodes.get(dest).pos
+                ans = self.is_between(pSrc, pocPos, pDest)
+                if ans:
+                    return i
+                else:
+                    continue
+        return None
 
     def shortest_path(self, id1: int, id2: int) -> (float, list):
         """

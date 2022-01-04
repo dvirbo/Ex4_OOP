@@ -27,7 +27,7 @@ class Pokemons:
         self.dest = None
 
     def __str__(self) -> str:
-        return f""" pokemon: value= {self.value} , type= {self.type} , pos= {self.pos} \n"""
+        return f""" pokemon: value= {self.value} , type= {self.type} , pos= {self.pos}"""
 
     def __repr__(self) -> str:
-        return f""" pokemon: value= {self.value} , type= {self.type} , pos= {self.pos} \n"""
+        return f""" pokemon: value= {self.value} , type= {self.type} , pos= {self.pos}"""
