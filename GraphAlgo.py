@@ -3,6 +3,7 @@ import math
 import sys
 from math import sqrt
 
+from classes.agent import Agent
 from classes.edge import Edge
 from classes.node import Node
 from queue import PriorityQueue
@@ -13,6 +14,7 @@ class GraphAlgo:
     Nodes = {}
     distances = {}
     pokemons = []
+    agents = []
 
     def __init__(self):
         self.Nodes = {}
@@ -20,6 +22,7 @@ class GraphAlgo:
         self.up = []  # (src= 10 , dest= 0 , w= 1.1761238717867548)
         self.down = []
         self.pokemons = []
+        self.agents = []
 
     def load_json(self, file_name: str):
         """
@@ -66,15 +69,38 @@ class GraphAlgo:
         finally:
             return flag
 
-    def load_Pokemon(self, file_name: str):
+    def load_agents(self, data: str):
+        """
+        :param data: str of all the agents in the game, the aim is to generate an object from them
+        :return: update list of agents
+        """
+        flag = True
+        try:
+            my_dict = json.loads(data)
+            for a in my_dict["Agents"]:
+                id = a["Agent"]["id"]
+                value = a["Agent"]["value"]
+                src = a["Agent"]["src"]
+                dest = a["Agent"]["dest"]
+                speed = a["Agent"]["speed"]
+                jpos = tuple(map(float, str(a["Agent"]["pos"]).split(",")))
+                agent = Agent(id, value, src, dest, speed, jpos)
+                self.agents.append(agent)
+        except FileNotFoundError:
+            flag = False
+            raise FileNotFoundError
+        finally:
+            return flag
+
+    def load_Pokemon(self, data: str):
         """
         '{"Pokemons":[{"Pokemon":{"value":5.0,"type":-1,"pos":"35.197656770719604,32.10191878639921,0.0"} },...]}'
-        :param file_name: str
+        :param data: str
         :return: update the list that we init
         """
         flag = True
         try:
-            my_dict = json.loads(file_name)
+            my_dict = json.loads(data)
             for p in my_dict["Pokemons"]:
                 value = p["Pokemon"]['value']
                 type = p["Pokemon"]['type']

@@ -59,7 +59,6 @@ pokemons = client.get_pokemons()
 pokemons_obj = json.loads(pokemons, object_hook=lambda d: SimpleNamespace(**d))
 
 graph_json = client.get_graph()
-
 main_graph = GraphAlgo()
 main_graph.load_json(graph_json)
 # load all the poc to the main- we need to update them every "move"
@@ -98,14 +97,21 @@ def my_scale(data, x=False, y=False):
     if y:
         return scale(data, 50, screen.get_height() - 50, min_y, max_y)
 
-
 radius = 15
+data = json.loads(client.get_info())
+agentNum = data["GameServer"]["agents"]
+if agentNum == 1:
+    client.add_agent("{\"id\":1}")
+elif agentNum == 2:
+    client.add_agent("{\"id\":1}")
+    client.add_agent("{\"id\":2}")
+else:
+    client.add_agent("{\"id\":1}")
+    client.add_agent("{\"id\":2}")
+    client.add_agent("{\"id\":3}")
 
-client.add_agent("{\"id\":0}")
-# client.add_agent("{\"id\":1}")
-# client.add_agent("{\"id\":2}")
-# client.add_agent("{\"id\":3}")
-
+main_graph.load_agents(client.get_agents())
+# str = client.get_agents()
 # this commnad starts the server - the game is running now
 client.start()
 
@@ -115,7 +121,6 @@ The GUI and the "algo" are mixed - refactoring using MVC design pattern is requi
 """
 
 while client.is_running() == 'true':
-
     if exit_button.draw(screen): # need to check why isn't work..
         print('EXIT')
     pokemons = json.loads(client.get_pokemons(),
@@ -132,6 +137,7 @@ while client.is_running() == 'true':
         x, y, _ = a.pos.split(',')
         a.pos = SimpleNamespace(x=my_scale(
             float(x), x=True), y=my_scale(float(y), y=True))
+
     # check events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -178,10 +184,9 @@ while client.is_running() == 'true':
     for agent in agents:
         pygame.draw.circle(screen, Color(122, 61, 23),
                            (int(agent.pos.x), int(agent.pos.y)), 10)
-    # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
     for p in pokemons:
         # need to send the pos of the poc to function that check if the poc is on d<s or else
-        if p.type == -1:
+        if p.type == -1: # draw the pokemons different to debug
             pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
         else:
             pygame.draw.circle(screen, Color(255, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
