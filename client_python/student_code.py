@@ -3,6 +3,7 @@
 OOP - Ex4
 Very simple GUI example for python client to communicates with the server and "play the game!"
 """
+from threading import Thread
 from types import SimpleNamespace
 from client import Client
 import json
@@ -10,7 +11,6 @@ from pygame import gfxdraw
 import pygame
 from pygame import *
 from pygame.constants import RESIZABLE
-from client_python import button
 from graphAlgo import GraphAlgo
 import time
 
@@ -27,29 +27,11 @@ pygame.init()
 screen = display.set_mode((WIDTH, HEIGHT), depth=32, flags=RESIZABLE)
 pygame.display.set_caption('Ex4')
 # counter:
-counter_value = 0
+MOVE_COUNTER = 0
 font = pygame.font.SysFont("verdana", 20)  # step 1 - load a font
 
 # background:
 background = pygame.image.load('pacmen.jpg')
-
-# load button images
-exit_img = pygame.image.load('exit_btn.png').convert_alpha()
-
-# create button instances
-exit_button = button.Button(0.5, 60, exit_img, 0.8)
-
-
-def show_score():
-    count = font.render("Move count :" + str(counter_value), True, (255, 255, 255))
-    screen.blit(count, (0.5, 0.5))
-
-
-def show_time():
-    timer = font.render("Run time: " + str(time.time() - start), True, (255, 255, 255))
-    screen.blit(timer, (0.5, 30))
-
-
 clock = pygame.time.Clock()
 pygame.font.init()
 client = Client()
@@ -60,9 +42,7 @@ pokemons_obj = json.loads(pokemons, object_hook=lambda d: SimpleNamespace(**d))
 
 graph_json = client.get_graph()
 main_graph = GraphAlgo()
-main_graph.load_json(graph_json)
-# load all the poc to the main- we need to update them every "move"
-main_graph.load_Pokemon(pokemons)
+main_graph.load_json(graph_json)  # only one time..
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 # load the json string into SimpleNamespace Object
@@ -97,9 +77,39 @@ def my_scale(data, x=False, y=False):
     if y:
         return scale(data, 50, screen.get_height() - 50, min_y, max_y)
 
+
+def load_pok():
+    pok = client.get_pokemons()
+    main_graph.load_Pokemon(pok)
+
+
+def show_moves():
+    count = font.render("Move count :" + str(MOVE_COUNTER), True, (255, 255, 255))
+    screen.blit(count, (0.5, 0.5))
+
+
+def show_time():
+    timer = font.render("Run time: " + str(time.time() - start), True, (255, 255, 255))
+    screen.blit(timer, (0.5, 23))
+
+
+def my_move(seconds):
+    """
+    need to fix this thread
+    :param seconds:
+    :return:
+    """
+    client.move()
+    global MOVE_COUNTER
+    MOVE_COUNTER += 1
+    load_pok()
+    time.sleep(seconds)
+
+
 radius = 15
 data = json.loads(client.get_info())
 agentNum = data["GameServer"]["agents"]
+# check how much agents there is in the game:
 if agentNum == 1:
     client.add_agent("{\"id\":1}")
 elif agentNum == 2:
@@ -111,18 +121,19 @@ else:
     client.add_agent("{\"id\":3}")
 
 main_graph.load_agents(client.get_agents())
-# str = client.get_agents()
+my_agents = main_graph.agents  # list of all the agents
+thread = Thread(target=my_move, args=(1,), name="move_thread")
+
 # this commnad starts the server - the game is running now
 client.start()
+# thread.start()
+# thread.join()
 
 """
 The code below should be improved significantly:
 The GUI and the "algo" are mixed - refactoring using MVC design pattern is required.
 """
-
 while client.is_running() == 'true':
-    if exit_button.draw(screen): # need to check why isn't work..
-        print('EXIT')
     pokemons = json.loads(client.get_pokemons(),
                           object_hook=lambda d: SimpleNamespace(**d)).Pokemons
     pokemons = [p.Pokemon for p in pokemons]
@@ -137,12 +148,6 @@ while client.is_running() == 'true':
         x, y, _ = a.pos.split(',')
         a.pos = SimpleNamespace(x=my_scale(
             float(x), x=True), y=my_scale(float(y), y=True))
-
-    # check events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit(0)
 
     # refresh surface
     screen.fill(Color(0, 0, 0))
@@ -186,15 +191,28 @@ while client.is_running() == 'true':
                            (int(agent.pos.x), int(agent.pos.y)), 10)
     for p in pokemons:
         # need to send the pos of the poc to function that check if the poc is on d<s or else
-        if p.type == -1: # draw the pokemons different to debug
+        if p.type == -1:  # draw the pokemons different to debug
             pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
         else:
             pygame.draw.circle(screen, Color(255, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
 
+    # check events to stop the game:
+    stop = FONT.render('click to stop', True, Color(255, 255, 255))
+    button = stop.get_rect(center=(41, 61), size=(110, 34))
+    pygame.draw.rect(screen, (100, 100, 100), button)
+    screen.blit(stop, (5, 50))
 
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit(0)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = event.pos
+            if button.collidepoint(mouse_pos):
+                client.stop()
 
     # update screen changes
-    show_score()
+    show_moves()
     show_time()
     display.update()
 
@@ -209,9 +227,5 @@ while client.is_running() == 'true':
                 '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
             ttl = client.time_to_end()
             print(ttl, client.get_info())
-
-    counter_value += 1
-
     client.move()
-
 # game over:
