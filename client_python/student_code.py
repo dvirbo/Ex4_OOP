@@ -109,16 +109,8 @@ def my_move(seconds):
 radius = 15
 data = json.loads(client.get_info())
 agentNum = data["GameServer"]["agents"]
-# check how much agents there is in the game:
-if agentNum == 1:
-    client.add_agent("{\"id\":1}")
-elif agentNum == 2:
-    client.add_agent("{\"id\":1}")
-    client.add_agent("{\"id\":2}")
-else:
-    client.add_agent("{\"id\":1}")
-    client.add_agent("{\"id\":2}")
-    client.add_agent("{\"id\":3}")
+# add the number of agents:
+client.add_agent("{\"id\":%d}" % agentNum)
 
 main_graph.load_agents(client.get_agents())
 my_agents = main_graph.agents  # list of all the agents
