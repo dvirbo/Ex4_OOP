@@ -3,12 +3,17 @@ import math
 import sys
 from math import sqrt
 from typing import List
+import random
+
+
+from numpy.random.mtrand import random
 
 from classes.agent import Agent
 from classes.edge import Edge
 from classes.node import Node
 from queue import PriorityQueue
 from classes.pokemon import Pokemons
+from classes.position import Position
 
 
 class GraphAlgo:
@@ -88,6 +93,7 @@ class GraphAlgo:
                 dest = a["Agent"]["dest"]
                 speed = a["Agent"]["speed"]
                 jpos = tuple(map(float, str(a["Agent"]["pos"]).split(",")))
+                jpos = Position(jpos)
                 agent = Agent(id, value, src, dest, speed, jpos)
                 self.agents.append(agent)
         except FileNotFoundError:

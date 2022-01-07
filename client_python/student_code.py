@@ -1,3 +1,4 @@
+
 """
 @author AchiyaZigi
 OOP - Ex4
@@ -24,43 +25,33 @@ PORT = 6666
 HOST = '127.0.0.1'
 pygame.init()
 
-screen = display.set_mode((WIDTH, HEIGHT), depth=32, flags=RESIZABLE)
+screen = display.set_mode((WIDTH, HEIGHT),  HWSURFACE | DOUBLEBUF | RESIZABLE)
 pygame.display.set_caption('Ex4')
 # counter:
 MOVE_COUNTER = 0
 font = pygame.font.SysFont("verdana", 20)  # step 1 - load a font
-
-# background:
-background = pygame.image.load('pacmen.jpg')
 clock = pygame.time.Clock()
 pygame.font.init()
 client = Client()
 client.start_connection(HOST, PORT)
 
 pokemons = client.get_pokemons()
-pokemons_obj = json.loads(pokemons, object_hook=lambda d: SimpleNamespace(**d))
 
 graph_json = client.get_graph()
 main_graph = GraphAlgo()
 main_graph.load_json(graph_json)  # only one time..
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
-# load the json string into SimpleNamespace Object
-
-# jsGrapg = json.loads(
-#     graph_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
-#
-# for n in jsGrapg.Nodes:
-#     x, y, _ = n.pos.split(',')
-#     n.pos = SimpleNamespace(x=float(x), y=float(y))
-
-# get data proportions
-# min_x = min(list(jsGrapg.Nodes), key=lambda n: n.pos.x).pos.x
-# min_y = min(list(jsGrapg.Nodes), key=lambda n: n.pos.y).pos.y
-# max_x = max(list(jsGrapg.Nodes), key=lambda n: n.pos.x).pos.x
-# max_y = max(list(jsGrapg.Nodes), key=lambda n: n.pos.y).pos.y
 jsGrapg = main_graph.load_json(graph_json)
 min_x, max_x, min_y, max_y = main_graph.getMin()
+# need to change the path
+pic1 = pygame.image.load("pic1.png")
+pic1 = pygame.transform.scale(pic1, (35, 35))
+pic2 = pygame.image.load("pic2.png")
+pic2 = pygame.transform.scale(pic2, (35, 35))
+ash = pygame.image.load("ash.png")
+ash = pygame.transform.scale(ash, (35, 35))
+
 
 def scale(data, min_screen, max_screen, min_data, max_data):
     """
@@ -110,8 +101,16 @@ def my_move(seconds):
 radius = 15
 data = json.loads(client.get_info())
 agentNum = data["GameServer"]["agents"]
-# add the number of agents:
-client.add_agent("{\"id\":%d}" % agentNum)
+# check how much agents there is in the game:
+if agentNum == 1:
+    client.add_agent("{\"id\":1}")
+elif agentNum == 2:
+    client.add_agent("{\"id\":1}")
+    client.add_agent("{\"id\":2}")
+else:
+    client.add_agent("{\"id\":1}")
+    client.add_agent("{\"id\":2}")
+    client.add_agent("{\"id\":3}")
 
 main_graph.load_agents(client.get_agents())
 my_agents = main_graph.agents  # list of all the agents
@@ -127,6 +126,8 @@ The code below should be improved significantly:
 The GUI and the "algo" are mixed - refactoring using MVC design pattern is required.
 """
 while client.is_running() == 'true':
+    main_graph.load_Pokemon(client.get_pokemons())
+    main_graph.load_agents(client.get_agents())
     pokemons = json.loads(client.get_pokemons(),
                           object_hook=lambda d: SimpleNamespace(**d)).Pokemons
     pokemons = [p.Pokemon for p in pokemons]
@@ -134,6 +135,12 @@ while client.is_running() == 'true':
         x, y, _ = p.pos.split(',')
         p.pos = SimpleNamespace(x=my_scale(
             float(x), x=True), y=my_scale(float(y), y=True))
+        # need to send the pos of the poc to function that check if the poc is on d<s or else
+        if p.type == -1:  # draw the pokemons different to debug
+            screen.blit(pic1, (p.pos.x - 5, p.pos.y - 10))
+        else:
+            screen.blit(pic2, (p.pos.x - 5, p.pos.y - 10))
+
     agents = json.loads(client.get_agents(),
                         object_hook=lambda d: SimpleNamespace(**d)).Agents
     agents = [agent.Agent for agent in agents]
@@ -144,8 +151,6 @@ while client.is_running() == 'true':
 
     # refresh surface
     screen.fill(Color(0, 0, 0))
-    # Background image:
-    screen.blit(background, (0, 0))
     # draw nodes
     for n in main_graph.Nodes.values():
         x = my_scale(n.pos[0], x=True)
@@ -180,14 +185,14 @@ while client.is_running() == 'true':
 
     # draw agents
     for agent in agents:
-        pygame.draw.circle(screen, Color(122, 61, 23),
-                           (int(agent.pos.x), int(agent.pos.y)), 10)
+        screen.blit(ash, (int(agent.pos.x),int(agent.pos.y)))
+
     for p in pokemons:
         # need to send the pos of the poc to function that check if the poc is on d<s or else
         if p.type == -1:  # draw the pokemons different to debug
-            pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+            screen.blit(pic1, (p.pos.x - 5, p.pos.y - 10))
         else:
-            pygame.draw.circle(screen, Color(255, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+            screen.blit(pic2, (p.pos.x - 5, p.pos.y - 10))
 
     # check events to stop the game:
     stop = FONT.render('click to stop', True, Color(255, 255, 255))
@@ -221,4 +226,7 @@ while client.is_running() == 'true':
             ttl = client.time_to_end()
             print(ttl, client.get_info())
     client.move()
+    MOVE_COUNTER += 1
 # game over:
+
+
