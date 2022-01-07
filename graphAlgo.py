@@ -13,12 +13,14 @@ from classes.pokemon import Pokemons
 
 class GraphAlgo:
     Nodes = {}
+    Edges = []
     distances = {}
     pokemons = []
     agents = []
 
     def __init__(self):
         self.Nodes = {}
+        self.Edges = []
         self.distances = {}
         self.up = []  # (src= 10 , dest= 0 , w= 1.1761238717867548)
         self.down = []
@@ -50,6 +52,7 @@ class GraphAlgo:
                 ed = Edge(src=i["src"], dest=i["dest"], weight=i["w"])
                 src = ed.src
                 dest = ed.dest
+                self.Edges.append(ed)
 
                 src_pos = self.Nodes[src].pos
                 dest_pos = self.Nodes[dest].pos
@@ -306,6 +309,22 @@ class GraphAlgo:
                     node_lst.remove(i)
 
         return pathAns, dist_ans
+
+    def getMin(self):
+        maxX = float('-inf')
+        maxY = float('-inf')
+        minX = float('inf')
+        minY = float('inf')
+        for n in self.Nodes.values():
+            if float(n.pos[0]) > maxX:
+                maxX = float(n.pos[0])
+            if float(n.pos[1]) > maxY:
+                maxY = float(n.pos[1])
+            if float(n.pos[0]) < minX:
+                minX = float(n.pos[0])
+            if float(n.pos[1]) < minY:
+                minY = float(n.pos[1])
+        return minX, maxX, minY, maxY
 
 
 

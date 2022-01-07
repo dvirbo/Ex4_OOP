@@ -47,19 +47,20 @@ main_graph.load_json(graph_json)  # only one time..
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 # load the json string into SimpleNamespace Object
 
-graph = json.loads(
-    graph_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
-
-for n in graph.Nodes:
-    x, y, _ = n.pos.split(',')
-    n.pos = SimpleNamespace(x=float(x), y=float(y))
+# jsGrapg = json.loads(
+#     graph_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
+#
+# for n in jsGrapg.Nodes:
+#     x, y, _ = n.pos.split(',')
+#     n.pos = SimpleNamespace(x=float(x), y=float(y))
 
 # get data proportions
-min_x = min(list(graph.Nodes), key=lambda n: n.pos.x).pos.x
-min_y = min(list(graph.Nodes), key=lambda n: n.pos.y).pos.y
-max_x = max(list(graph.Nodes), key=lambda n: n.pos.x).pos.x
-max_y = max(list(graph.Nodes), key=lambda n: n.pos.y).pos.y
-
+# min_x = min(list(jsGrapg.Nodes), key=lambda n: n.pos.x).pos.x
+# min_y = min(list(jsGrapg.Nodes), key=lambda n: n.pos.y).pos.y
+# max_x = max(list(jsGrapg.Nodes), key=lambda n: n.pos.x).pos.x
+# max_y = max(list(jsGrapg.Nodes), key=lambda n: n.pos.y).pos.y
+jsGrapg = main_graph.load_json(graph_json)
+min_x, max_x, min_y, max_y = main_graph.getMin()
 
 def scale(data, min_screen, max_screen, min_data, max_data):
     """
@@ -109,16 +110,8 @@ def my_move(seconds):
 radius = 15
 data = json.loads(client.get_info())
 agentNum = data["GameServer"]["agents"]
-# check how much agents there is in the game:
-if agentNum == 1:
-    client.add_agent("{\"id\":1}")
-elif agentNum == 2:
-    client.add_agent("{\"id\":1}")
-    client.add_agent("{\"id\":2}")
-else:
-    client.add_agent("{\"id\":1}")
-    client.add_agent("{\"id\":2}")
-    client.add_agent("{\"id\":3}")
+# add the number of agents:
+client.add_agent("{\"id\":%d}" % agentNum)
 
 main_graph.load_agents(client.get_agents())
 my_agents = main_graph.agents  # list of all the agents
@@ -154,9 +147,9 @@ while client.is_running() == 'true':
     # Background image:
     screen.blit(background, (0, 0))
     # draw nodes
-    for n in graph.Nodes:
-        x = my_scale(n.pos.x, x=True)
-        y = my_scale(n.pos.y, y=True)
+    for n in main_graph.Nodes.values():
+        x = my_scale(n.pos[0], x=True)
+        y = my_scale(n.pos[1], y=True)
 
         # its just to get a nice antialiased circle
         gfxdraw.filled_circle(screen, int(x), int(y),
@@ -165,21 +158,21 @@ while client.is_running() == 'true':
                          radius, Color(255, 255, 255))
 
         # draw the node id
-        id_srf = FONT.render(str(n.id), True, Color(255, 255, 255))
+        id_srf = FONT.render(str(n.key), True, Color(255, 255, 255))
         rect = id_srf.get_rect(center=(x, y))
         screen.blit(id_srf, rect)
 
     # draw edges
-    for e in graph.Edges:
+    for e in main_graph.Edges:
         # find the edge nodes
-        src = next(n for n in graph.Nodes if n.id == e.src)
-        dest = next(n for n in graph.Nodes if n.id == e.dest)
+        src = next(n for n in main_graph.Nodes.values() if n.key == e.src)
+        dest = next(n for n in main_graph.Nodes.values() if n.key == e.dest)
 
         # scaled positions
-        src_x = my_scale(src.pos.x, x=True)
-        src_y = my_scale(src.pos.y, y=True)
-        dest_x = my_scale(dest.pos.x, x=True)
-        dest_y = my_scale(dest.pos.y, y=True)
+        src_x = my_scale(src.pos[0], x=True)
+        src_y = my_scale(src.pos[1], y=True)
+        dest_x = my_scale(dest.pos[0], x=True)
+        dest_y = my_scale(dest.pos[1], y=True)
 
         # draw the line
         pygame.draw.line(screen, Color(61, 72, 126),
@@ -222,7 +215,7 @@ while client.is_running() == 'true':
     # choose next edge
     for agent in agents:
         if agent.dest == -1:
-            next_node = (agent.src - 1) % len(graph.Nodes)
+            next_node = (agent.src - 1) % len(main_graph.Nodes.values())
             client.choose_next_edge(
                 '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
             ttl = client.time_to_end()
