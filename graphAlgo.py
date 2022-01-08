@@ -27,6 +27,7 @@ class GraphAlgo:
         self.Nodes = {}
         self.Edges = []
         self.distances = {}
+        self.center = None
         self.up = []  # (src= 10 , dest= 0 , w= 1.1761238717867548)
         self.down = []
         self.pokemons = []
@@ -35,7 +36,7 @@ class GraphAlgo:
     def load_json(self, file_name: str):
         """
         Loads a graph from a json file.
-        :param file_name: The path to the json file
+        :param file_name: the json file
         :return True if the loading was successful, False o.w.
         """
         flag = True
@@ -246,75 +247,41 @@ class GraphAlgo:
                 src_distances[dest_node] = [new_dist, [x for x in temp_list]]
                 src_distances[dest_node][1].append(dest_node)
 
-    def TSP(self, node_lst: List[int]) -> (List[int], float):
+    def center_point(self) -> (int, float):
         """
-            Finds the shortest path that visits all the nodes in the list
-            :param node_lst: A list of nodes id's
-            :return: A list of the nodes id's in the path, and the overall distance
+            Finds the node that has the shortest distance to it's farthest node.
+            :return: The nodes id, min-maximum distance
             """
-        if not len(node_lst):
-            pass
 
-        #  removing duplicates
-        node_lst = list(dict.fromkeys(node_lst))
+        min_value = sys.float_info.max
+        answer = 0
 
-        pathAns = []
+        for current_key in self.Nodes:
+            temp_max = 0
+            max_value = sys.float_info.min
 
-        # path from nodeA to nodeB while nodeA is startNode and nodeB is the node with the lowest distance from nodeA
-        tempPath = []
-        cost = sys.float_info.max
+            for j in self.Nodes:
+                next_node = j
 
-        startNode = node_lst.pop(0)
-        currentNode = 0
-        pathAns.append(startNode)
-
-        # dist_ans -> overall distance
-        dist_ans = 0
-
-        b = False
-        # while node_lst is not empty
-        while node_lst:
-
-            # looking for the node with the lowest distance path from startNode
-            for next_node_key in node_lst:
+                # checking if self.distances has the value
                 if self.distances is not None \
-                        and self.distances.get(startNode) is not None \
-                        and self.distances.get(startNode).get(next_node_key) is not None \
-                        and self.distances.get(startNode).get(next_node_key)[0] is not None \
-                        and self.distances.get(startNode).get(next_node_key)[0] != sys.float_info.max \
-                        and self.distances.get(startNode).get(next_node_key)[1] is not None:
-                    tempSPD = self.distances.get(startNode).get(next_node_key)[0]
+                        and self.distances.get(current_key) is not None \
+                        and self.distances.get(current_key).get(next_node) is not None \
+                        and self.distances.get(current_key).get(next_node)[0] is not None \
+                        and self.distances.get(current_key).get(next_node)[0] != sys.float_info.max:
+                    temp_max = self.distances.get(current_key).get(next_node)[0]
+                elif current_key != next_node:
+                    temp_short = self.shortest_path(current_key, next_node)
+                    temp_max = temp_short[0]
 
-                else:
-                    tempSPD = self.shortest_path(startNode, next_node_key)[0]
+                # getting the max value of the current node distances
+                if temp_max > max_value:
+                    max_value = temp_max
+            if max_value < min_value:
+                min_value = max_value
+                answer = current_key
 
-                if tempSPD < cost:
-                    b = True
-                    cost = tempSPD
-                    tempPath = self.distances.get(startNode).get(next_node_key)[1]
-                    dist_ans += self.distances.get(startNode).get(next_node_key)[0]
-                    tempPath.remove(startNode)
-                    currentNode = next_node_key
-
-            #  if there's no path
-            if not tempPath:
-                return -1, float('inf')
-
-            if not b:
-                return -1, float('inf')
-
-            b = False
-
-            cost = sys.float_info.max
-            index = node_lst.index(currentNode)
-            startNode = node_lst[index]
-
-            for i in tempPath:
-                pathAns.append(i)
-                if i in node_lst:
-                    node_lst.remove(i)
-
-        return pathAns, dist_ans
+        self.center = answer
 
     def getMin(self):
         maxX = float('-inf')
@@ -332,9 +299,3 @@ class GraphAlgo:
                 minY = float(n.pos[1])
         return minX, maxX, minY, maxY
 
-
-
-if __name__ == "__main__":
-    graph = GraphAlgo()
-    graph.load_json("../data/A3")
-    print(graph.shortest_path(6, 30))

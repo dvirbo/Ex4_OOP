@@ -127,7 +127,6 @@ The GUI and the "algo" are mixed - refactoring using MVC design pattern is requi
 """
 while client.is_running() == 'true':
     main_graph.load_Pokemon(client.get_pokemons())
-    main_graph.load_agents(client.get_agents())
     pokemons = json.loads(client.get_pokemons(),
                           object_hook=lambda d: SimpleNamespace(**d)).Pokemons
     pokemons = [p.Pokemon for p in pokemons]
