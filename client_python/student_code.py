@@ -1,4 +1,3 @@
-
 """
 @author AchiyaZigi
 OOP - Ex4
@@ -25,7 +24,7 @@ PORT = 6666
 HOST = '127.0.0.1'
 pygame.init()
 
-screen = display.set_mode((WIDTH, HEIGHT),  HWSURFACE | DOUBLEBUF | RESIZABLE)
+screen = display.set_mode((WIDTH, HEIGHT), HWSURFACE | DOUBLEBUF | RESIZABLE)
 pygame.display.set_caption('Ex4')
 # counter:
 MOVE_COUNTER = 0
@@ -36,14 +35,13 @@ client = Client()
 client.start_connection(HOST, PORT)
 
 pokemons = client.get_pokemons()
-
 graph_json = client.get_graph()
 main_graph = GraphAlgo()
 main_graph.load_json(graph_json)  # only one time..
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 jsGrapg = main_graph.load_json(graph_json)
-min_x, max_x, min_y, max_y = main_graph.getMin()
+max_x, min_x, max_y, min_y = main_graph.getMin()
 # need to change the path
 pic1 = pygame.image.load("pic1.png")
 pic1 = pygame.transform.scale(pic1, (35, 35))
@@ -114,6 +112,9 @@ else:
 
 main_graph.load_agents(client.get_agents())
 my_agents = main_graph.agents  # list of all the agents
+startPoint = main_graph.center_point()
+
+
 thread = Thread(target=my_move, args=(1,), name="move_thread")
 
 # this commnad starts the server - the game is running now
@@ -185,7 +186,7 @@ while client.is_running() == 'true':
 
     # draw agents
     for agent in agents:
-        screen.blit(ash, (int(agent.pos.x),int(agent.pos.y)))
+        screen.blit(ash, (int(agent.pos.x), int(agent.pos.y)))
 
     for p in pokemons:
         # need to send the pos of the poc to function that check if the poc is on d<s or else
@@ -218,15 +219,26 @@ while client.is_running() == 'true':
     clock.tick(60)
 
     # choose next edge
-    for agent in agents:
-        if agent.dest == -1:
-            next_node = (agent.src - 1) % len(main_graph.Nodes.values())
+    for agent in my_agents:
+        if agent.dest != -1:
+            continue
+        dist, path, pokemon = main_graph.allocateAgent(agent)
+        if dist == -1:
+            continue
+        if float(dist) == 0.0:
+            edge = pokemon.edge
+            if pokemon.type > 0:
+                client.choose_next_edge(
+                    '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(edge.dest) + '}')
+            else:
+                client.choose_next_edge(
+                    '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(edge.src) + '}')
+        else:
             client.choose_next_edge(
-                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
+                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(path[1]) + '}')
+
             ttl = client.time_to_end()
             print(ttl, client.get_info())
     client.move()
     MOVE_COUNTER += 1
 # game over:
-
-
