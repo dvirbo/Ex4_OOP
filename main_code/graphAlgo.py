@@ -8,7 +8,6 @@ from math import sqrt
 from classes.agent import Agent
 from classes.edge import Edge
 from classes.node import Node
-from queue import PriorityQueue
 from classes.pokemon import Pokemons
 from classes.position import Position
 
@@ -69,7 +68,8 @@ class GraphAlgo:
 
                 self.Nodes[src].add_out_edge(ed)
                 self.Nodes[dest].add_in_edge(ed)
-
+            self.distances_nodes()
+            self.center_point()
         except FileNotFoundError:
             flag = False
             raise FileNotFoundError
