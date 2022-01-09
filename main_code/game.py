@@ -1,8 +1,3 @@
-"""
-@author AchiyaZigi
-OOP - Ex4
-Very simple GUI example for python client to communicates with the server and "play the game!"
-"""
 from threading import Thread
 from types import SimpleNamespace
 from client import Client
@@ -82,7 +77,7 @@ def show_moves():
 
 
 def show_time():
-    timer = font.render("Run time: " + str(time.time() - start), True, (255, 255, 255))
+    timer = font.render("Run time: " + str(int(time.time() - start)), True, (255, 255, 255))
     screen.blit(timer, (0.5, 23))
 
 
@@ -126,13 +121,9 @@ thread.start()
 thread.join()
 timer = 0
 
-"""
-The code below should be improved significantly:
-The GUI and the "algo" are mixed - refactoring using MVC design pattern is required.
-"""
 while client.is_running() == 'true':
     main_graph.load_Pokemon(client.get_pokemons())
-    main_graph.load_agents(client.get_agents(),agentNum)
+    main_graph.load_agents(client.get_agents(), agentNum)
     pokemons = json.loads(client.get_pokemons(),
                           object_hook=lambda d: SimpleNamespace(**d)).Pokemons
     pokemons = [p.Pokemon for p in pokemons]
@@ -245,10 +236,8 @@ while client.is_running() == 'true':
             print(ttl, client.get_info())
             timer = 0.135
             """
-            t = 0.135
             change the time that the "move" sleep in case that the agent stand on the src of the edge that
             the pokemon is on
-            {"GameServer":{"pokemons":3,"is_logged_in":false,"moves":197,"grade":58,"game_level":8,"max_user_level":-1,"id":0,"graph":"data/A2","agents":1}}
             """
     my_move(timer)
 # game over:
