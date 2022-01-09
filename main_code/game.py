@@ -11,7 +11,7 @@ from pygame import gfxdraw
 import pygame
 from pygame import *
 from pygame.constants import RESIZABLE
-from graphAlgo import GraphAlgo
+from main_code.graphAlgo import GraphAlgo
 import time
 
 start = time.time()
@@ -25,7 +25,7 @@ HOST = '127.0.0.1'
 pygame.init()
 
 screen = display.set_mode((WIDTH, HEIGHT), HWSURFACE | DOUBLEBUF | RESIZABLE)
-pygame.display.set_caption('Ex4')
+pygame.display.set_caption('Ex4 by Dvir & Yuval')
 # counter:
 MOVE_COUNTER = 0
 font = pygame.font.SysFont("verdana", 20)  # step 1 - load a font
@@ -40,14 +40,16 @@ main_graph = GraphAlgo()
 main_graph.load_json(graph_json)  # only one time..
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
-jsGrapg = main_graph.load_json(graph_json)
 max_x, min_x, max_y, min_y = main_graph.getMin()
 # need to change the path
-pic1 = pygame.image.load("pic1.png")
+programIcon = pygame.image.load("../pictures/icon.png")
+programIcon = pygame.transform.scale(programIcon, (35, 35))
+pygame.display.set_icon(programIcon)
+pic1 = pygame.image.load("../pictures/pic1.png")
 pic1 = pygame.transform.scale(pic1, (35, 35))
-pic2 = pygame.image.load("pic2.png")
+pic2 = pygame.image.load("../pictures/pic2.png")
 pic2 = pygame.transform.scale(pic2, (35, 35))
-ash = pygame.image.load("ash.png")
+ash = pygame.image.load("../pictures/ash.png")
 ash = pygame.transform.scale(ash, (35, 35))
 
 
@@ -90,7 +92,7 @@ def show_score(data: float):
 
 def my_move(seconds):
     """
-    :param seconds:
+    :param seconds: the second that the move will sleep
     :return:
     """
     client.move()
@@ -119,8 +121,8 @@ thread = Thread(target=my_move, args=(1,), name="move_thread")
 
 # this commnad starts the server - the game is running now
 client.start()
-# thread.start()
-# thread.join()
+thread.start()
+thread.join()
 
 """
 The code below should be improved significantly:
@@ -231,9 +233,8 @@ while client.is_running() == 'true':
         if dist == -1:
             continue
         if float(dist) == 0.0:
-            edge = pokemon.edge
             client.choose_next_edge(
-                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(edge.src) + '}')
+                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(pokemon.edge.src) + '}')
         else:
             client.choose_next_edge(
                 '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(path[1]) + '}')
@@ -242,9 +243,8 @@ while client.is_running() == 'true':
             print(ttl, client.get_info())
             """
             
-            115 good
+            135 good
             
             """
     my_move(0.135)
-    #  MOVE_COUNTER += 1
 # game over:

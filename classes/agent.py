@@ -16,9 +16,4 @@ class Agent:
     def __repr__(self) -> str:
         return f""" Agent(id= {self.id} , value= {self.value} , src= {self.src}, dest= {self.dest},  speed= {self.speed} ,pos = {self.pos}  )"""
 
-    def next_node(self):
-        pass
-
-    def add_pokemon(self):
-        pass
 
