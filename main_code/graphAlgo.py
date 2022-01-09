@@ -1,11 +1,9 @@
 import json
+import random
+
 import math
 import sys
 from math import sqrt
-from typing import List
-import random
-
-from numpy.random.mtrand import random
 
 from classes.agent import Agent
 from classes.edge import Edge
@@ -78,7 +76,7 @@ class GraphAlgo:
         finally:
             return flag
 
-    def load_agents(self, data: str) -> bool:
+    def load_agents(self, data: str, agentNum: int) -> bool:
         """
         :param data: str of all the agents in the game, the aim is to generate an object from them
         :return: update list of agents
@@ -95,6 +93,15 @@ class GraphAlgo:
                 speed = a["Agent"]["speed"]
                 jpos = tuple(map(float, str(a["Agent"]["pos"]).split(",")))
                 jpos = Position(jpos)
+                if agentNum == 2:
+                    if id == 2:
+                        jpos = self.Nodes[self.center].pos
+
+                elif agentNum == 3:
+                    if id == 2:
+                        jpos = self.Nodes[self.center].pos
+                    elif id == 3:
+                        jpos = self.Nodes[(int)(random.uniform(1, len(self.Nodes)))].pos
                 agent = Agent(id, value, src, dest, speed, jpos)
                 self.agents.append(agent)
         except FileNotFoundError:
@@ -175,7 +182,8 @@ class GraphAlgo:
                     continue
         return None
 
-    def shortest_path(self, id1: int, id2: int) -> (float, list):
+    def shortest_path(self, id1: int, id2: int):
+
         """
         :param id1: src node
         :param id2: dest node
@@ -184,18 +192,9 @@ class GraphAlgo:
         if id1 == id2:
             return float('inf'), []
 
-        # checking if self.distance has the answer
-        if self.distances is not None \
-                and self.distances.get(id1) is not None \
-                and self.distances.get(id1).get(id2) is not None \
-                and self.distances.get(id1).get(id2)[0] is not None \
-                and self.distances.get(id1).get(id2)[0] != sys.float_info.max \
-                and self.distances.get(id1).get(id2)[1] is not None:
-            return self.distances.get(id1).get(id2)
-
         # src_distances a dict of id1 distances and path to the graph's nodes
-        src_distances = {id1: [0, None]}
-        p_queue = PriorityQueue()
+        src_distances = {}
+        src_distances[id1] = [0, None]
         nodes = self.Nodes
         for current_key in nodes:
             nodes.get(current_key).set_tag(0)
@@ -205,29 +204,45 @@ class GraphAlgo:
                 if self.distances is not None \
                         and self.distances.get(id1) is not None \
                         and self.distances.get(id1).get(current_key) is not None:
-                    temp = self.distances.get(id1).get(current_key)
-                    src_distances[current_key] = temp
-                    p_queue.put((temp, current_key))
+                    src_distances[current_key] = self.distances.get(id1).get(current_key)
 
                 # if there's an edge between src and dest then put the weight of the edge
                 elif nodes.get(id1).get_edge(current_key) is not None:
                     temp_path = [id1, current_key]
-                    temp = nodes.get(id1).get_edge(current_key).weight
-                    src_distances[current_key] = [temp, temp_path]
-                    p_queue.put((temp, current_key))
+                    src_distances[current_key] = [nodes.get(id1).get_edge(current_key).weight, temp_path]
                 else:
                     src_distances[current_key] = [sys.float_info.max, None]
-                    p_queue.put((sys.float_info.max, current_key))
 
-        while self.Nodes[id2].tag != 1:
+        while nodes.get(id2).tag != 1:
             # getting the node with the lowest distance from id1
-            temp = p_queue.get()
-            index = temp[1]
-            self.dijkstra_algorithm(index, src_distances)
-            nodes.get(index).set_tag(1)
+            index = self.lowest_dist(src_distances, nodes)
+            if index == -1:
+                return float('inf'), []
+            else:
+                self.dijkstra_algorithm(index, src_distances)
+                nodes.get(index).set_tag(1)
 
         self.distances[id1] = src_distances
-        return src_distances[id2]
+
+    def lowest_dist(self, src_distances: dict, nodes: dict) -> int:
+        """
+        :param nodes: dictionary of the graph's nodes
+        :param src_distances: dictionary with the src distances to the other nodes in the graph
+        :return: The index of the node with the lowest distance from src node
+        """
+        temp_dist = sys.float_info.max
+        ans = -1
+
+        for i in src_distances:
+            key = i
+            value = src_distances[key][0]
+
+            current_node = nodes.get(key)
+            if current_node.tag == 0:
+                if value < temp_dist:
+                    temp_dist = value
+                    ans = key
+        return ans
 
     def dijkstra_algorithm(self, index: int, src_distances: dict) -> None:
         """
@@ -247,6 +262,19 @@ class GraphAlgo:
                 src_distances[dest_node] = [new_dist, [x for x in temp_list]]
                 src_distances[dest_node][1].append(dest_node)
 
+    def distances_nodes(self):
+        for current_key in self.Nodes:
+            for next_node in self.Nodes:
+                if current_key != next_node:
+                    if self.distances is not None \
+                            and self.distances.get(current_key) is not None \
+                            and self.distances.get(current_key).get(next_node) is not None \
+                            and self.distances.get(current_key).get(next_node)[0] is not None \
+                            and self.distances.get(current_key).get(next_node)[0] != sys.float_info.max:
+                        continue
+                    else:
+                        self.shortest_path(current_key, next_node)
+
     def center_point(self) -> (int, float):
         """
             Finds the node that has the shortest distance to it's farthest node.
@@ -260,28 +288,20 @@ class GraphAlgo:
             temp_max = 0
             max_value = sys.float_info.min
 
-            for j in self.Nodes:
-                next_node = j
-
-                # checking if self.distances has the value
-                if self.distances is not None \
-                        and self.distances.get(current_key) is not None \
-                        and self.distances.get(current_key).get(next_node) is not None \
-                        and self.distances.get(current_key).get(next_node)[0] is not None \
-                        and self.distances.get(current_key).get(next_node)[0] != sys.float_info.max:
+            for next_node in self.Nodes:
+                if current_key != next_node:
                     temp_max = self.distances.get(current_key).get(next_node)[0]
-                elif current_key != next_node:
-                    temp_short = self.shortest_path(current_key, next_node)
-                    temp_max = temp_short[0]
 
-                # getting the max value of the current node distances
-                if temp_max > max_value:
-                    max_value = temp_max
+                    # getting the max value of the current node distances
+                    if temp_max > max_value:
+                        max_value = temp_max
+
             if max_value < min_value:
                 min_value = max_value
                 answer = current_key
 
         self.center = answer
+        return answer
 
     def allocateAgent(self, agent: Agent):
         """
@@ -300,7 +320,7 @@ class GraphAlgo:
                 if pok.myAgent != -1:
                     continue
             dest = pok.edge.dest
-            dist, path = self.shortest_path(agent.src, dest)
+            dist, path = self.distances[agent.src][dest]
             if not path:
                 dist = 0.0
             else:
@@ -332,6 +352,3 @@ class GraphAlgo:
             if float(n.pos[1]) < minY:
                 minY = float(n.pos[1])
         return maxX, minX, maxY, minY
-
-
-

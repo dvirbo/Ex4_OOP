@@ -38,6 +38,7 @@ pokemons = client.get_pokemons()
 graph_json = client.get_graph()
 main_graph = GraphAlgo()
 main_graph.load_json(graph_json)  # only one time..
+main_graph.distances_nodes()
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 max_x, min_x, max_y, min_y = main_graph.getMin()
@@ -115,7 +116,7 @@ else:
     client.add_agent("{\"id\":2}")
     client.add_agent("{\"id\":3}")
 
-main_graph.load_agents(client.get_agents())
+main_graph.load_agents(client.get_agents(), agentNum)
 my_agents = main_graph.agents  # list of all the agents
 thread = Thread(target=my_move, args=(1,), name="move_thread")
 
@@ -123,6 +124,7 @@ thread = Thread(target=my_move, args=(1,), name="move_thread")
 client.start()
 thread.start()
 thread.join()
+timer = 0
 
 """
 The code below should be improved significantly:
@@ -130,7 +132,7 @@ The GUI and the "algo" are mixed - refactoring using MVC design pattern is requi
 """
 while client.is_running() == 'true':
     main_graph.load_Pokemon(client.get_pokemons())
-    main_graph.load_agents(client.get_agents())
+    main_graph.load_agents(client.get_agents(),agentNum)
     pokemons = json.loads(client.get_pokemons(),
                           object_hook=lambda d: SimpleNamespace(**d)).Pokemons
     pokemons = [p.Pokemon for p in pokemons]
@@ -234,16 +236,19 @@ while client.is_running() == 'true':
         if float(dist) == 0.0:
             client.choose_next_edge(
                 '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(pokemon.edge.src) + '}')
+            timer = 0.1115
         else:
             client.choose_next_edge(
                 '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(path[1]) + '}')
 
             ttl = client.time_to_end()
             print(ttl, client.get_info())
+            timer = 0.135
             """
-            
-            135 good
-            
+            t = 0.135
+            change the time that the "move" sleep in case that the agent stand on the src of the edge that
+            the pokemon is on
+            {"GameServer":{"pokemons":3,"is_logged_in":false,"moves":197,"grade":58,"game_level":8,"max_user_level":-1,"id":0,"graph":"data/A2","agents":1}}
             """
-    my_move(0.135)
+    my_move(timer)
 # game over:
