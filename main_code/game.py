@@ -33,7 +33,6 @@ pokemons = client.get_pokemons()
 graph_json = client.get_graph()
 main_graph = GraphAlgo()
 main_graph.load_json(graph_json)  # only one time..
-main_graph.distances_nodes()
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 max_x, min_x, max_y, min_y = main_graph.getMin()
