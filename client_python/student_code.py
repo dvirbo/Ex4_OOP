@@ -83,6 +83,11 @@ def show_time():
     screen.blit(timer, (0.5, 23))
 
 
+def show_score(data: float):
+    score = font.render("score: " + str(data), True, (255, 255, 255))
+    screen.blit(score, (0.5, 80))
+
+
 def my_move(seconds):
     """
     :param seconds:
@@ -110,8 +115,6 @@ else:
 
 main_graph.load_agents(client.get_agents())
 my_agents = main_graph.agents  # list of all the agents
-startPoint = main_graph.center_point()
-
 thread = Thread(target=my_move, args=(1,), name="move_thread")
 
 # this commnad starts the server - the game is running now
@@ -198,6 +201,11 @@ while client.is_running() == 'true':
     pygame.draw.rect(screen, (100, 100, 100), button)
     screen.blit(stop, (5, 50))
 
+    data = json.loads(client.get_info())
+    score = data["GameServer"]["grade"]
+    show_score(score)
+
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -233,6 +241,7 @@ while client.is_running() == 'true':
             ttl = client.time_to_end()
             print(ttl, client.get_info())
             """
+            
             115 good
             
             """
