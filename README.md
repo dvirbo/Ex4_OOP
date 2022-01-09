@@ -3,7 +3,7 @@
 
 ![ezgif com-gif-maker](https://user-images.githubusercontent.com/73783656/148681714-d93afb4e-d9eb-4447-b2f8-424b6cb45b59.gif)
 
-## Backround
+## background
 
 This project presents the final (last) assignment for the OOP course.
 In this assignment, we asked to “put into practice” the main tools covered along the course, in particular,expected to design a “Pokemon game” in which given a weighted graph,  a set of “Agents” that should be located on it so they could “catch” as many “Pokemons” as possible.
