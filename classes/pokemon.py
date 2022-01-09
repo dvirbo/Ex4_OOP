@@ -23,6 +23,10 @@ class Pokemons:
         self.type = type
         self.pos = pos
         self.edge = None
+        self.myAgent = -1
+
+    def set_agent(self, id: int):
+        self.myAgent = id
 
     def __str__(self) -> str:
         return f""" pokemon: value= {self.value} , type= {self.type} , pos= {self.pos}"""

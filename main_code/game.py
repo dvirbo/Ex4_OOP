@@ -1,4 +1,3 @@
-
 """
 @author AchiyaZigi
 OOP - Ex4
@@ -12,7 +11,7 @@ from pygame import gfxdraw
 import pygame
 from pygame import *
 from pygame.constants import RESIZABLE
-from graphAlgo import GraphAlgo
+from main_code.graphAlgo import GraphAlgo
 import time
 
 start = time.time()
@@ -25,8 +24,8 @@ PORT = 6666
 HOST = '127.0.0.1'
 pygame.init()
 
-screen = display.set_mode((WIDTH, HEIGHT),  HWSURFACE | DOUBLEBUF | RESIZABLE)
-pygame.display.set_caption('Ex4')
+screen = display.set_mode((WIDTH, HEIGHT), HWSURFACE | DOUBLEBUF | RESIZABLE)
+pygame.display.set_caption('Ex4 by Dvir & Yuval')
 # counter:
 MOVE_COUNTER = 0
 font = pygame.font.SysFont("verdana", 20)  # step 1 - load a font
@@ -36,20 +35,22 @@ client = Client()
 client.start_connection(HOST, PORT)
 
 pokemons = client.get_pokemons()
-
 graph_json = client.get_graph()
 main_graph = GraphAlgo()
 main_graph.load_json(graph_json)  # only one time..
+main_graph.distances_nodes()
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
-jsGrapg = main_graph.load_json(graph_json)
-min_x, max_x, min_y, max_y = main_graph.getMin()
-# need to change the path
-pic1 = pygame.image.load("pic1.png")
+max_x, min_x, max_y, min_y = main_graph.getMin()
+# LOAD AND SCALE ALL THE NEEDED PICTURES:
+programIcon = pygame.image.load("../pictures/icon.png")
+programIcon = pygame.transform.scale(programIcon, (35, 35))
+pygame.display.set_icon(programIcon)
+pic1 = pygame.image.load("../pictures/pic1.png")
 pic1 = pygame.transform.scale(pic1, (35, 35))
-pic2 = pygame.image.load("pic2.png")
+pic2 = pygame.image.load("../pictures/pic2.png")
 pic2 = pygame.transform.scale(pic2, (35, 35))
-ash = pygame.image.load("ash.png")
+ash = pygame.image.load("../pictures/ash.png")
 ash = pygame.transform.scale(ash, (35, 35))
 
 
@@ -85,16 +86,19 @@ def show_time():
     screen.blit(timer, (0.5, 23))
 
 
+def show_score(data: float):
+    score = font.render("score: " + str(data), True, (255, 255, 255))
+    screen.blit(score, (0.5, 80))
+
+
 def my_move(seconds):
     """
-    need to fix this thread
-    :param seconds:
+    :param seconds: the second that the move will sleep
     :return:
     """
     client.move()
     global MOVE_COUNTER
     MOVE_COUNTER += 1
-    load_pok()
     time.sleep(seconds)
 
 
@@ -112,14 +116,15 @@ else:
     client.add_agent("{\"id\":2}")
     client.add_agent("{\"id\":3}")
 
-main_graph.load_agents(client.get_agents())
+main_graph.load_agents(client.get_agents(), agentNum)
 my_agents = main_graph.agents  # list of all the agents
 thread = Thread(target=my_move, args=(1,), name="move_thread")
 
 # this commnad starts the server - the game is running now
 client.start()
-# thread.start()
-# thread.join()
+thread.start()
+thread.join()
+timer = 0
 
 """
 The code below should be improved significantly:
@@ -127,6 +132,7 @@ The GUI and the "algo" are mixed - refactoring using MVC design pattern is requi
 """
 while client.is_running() == 'true':
     main_graph.load_Pokemon(client.get_pokemons())
+    main_graph.load_agents(client.get_agents(),agentNum)
     pokemons = json.loads(client.get_pokemons(),
                           object_hook=lambda d: SimpleNamespace(**d)).Pokemons
     pokemons = [p.Pokemon for p in pokemons]
@@ -184,7 +190,7 @@ while client.is_running() == 'true':
 
     # draw agents
     for agent in agents:
-        screen.blit(ash, (int(agent.pos.x),int(agent.pos.y)))
+        screen.blit(ash, (int(agent.pos.x), int(agent.pos.y)))
 
     for p in pokemons:
         # need to send the pos of the poc to function that check if the poc is on d<s or else
@@ -198,6 +204,10 @@ while client.is_running() == 'true':
     button = stop.get_rect(center=(41, 61), size=(110, 34))
     pygame.draw.rect(screen, (100, 100, 100), button)
     screen.blit(stop, (5, 50))
+
+    data = json.loads(client.get_info())
+    score = data["GameServer"]["grade"]
+    show_score(score)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -217,15 +227,28 @@ while client.is_running() == 'true':
     clock.tick(60)
 
     # choose next edge
-    for agent in agents:
-        if agent.dest == -1:
-            next_node = (agent.src - 1) % len(main_graph.Nodes.values())
+    for agent in my_agents:
+        if agent.dest != -1:
+            continue
+        dist, path, pokemon = main_graph.allocateAgent(agent)
+        if dist == -1:
+            continue
+        if float(dist) == 0.0:
             client.choose_next_edge(
-                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
+                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(pokemon.edge.src) + '}')
+            timer = 0.1115
+        else:
+            client.choose_next_edge(
+                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(path[1]) + '}')
+
             ttl = client.time_to_end()
             print(ttl, client.get_info())
-    client.move()
-    MOVE_COUNTER += 1
+            timer = 0.135
+            """
+            t = 0.135
+            change the time that the "move" sleep in case that the agent stand on the src of the edge that
+            the pokemon is on
+            {"GameServer":{"pokemons":3,"is_logged_in":false,"moves":197,"grade":58,"game_level":8,"max_user_level":-1,"id":0,"graph":"data/A2","agents":1}}
+            """
+    my_move(timer)
 # game over:
-
-
