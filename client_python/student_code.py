@@ -85,14 +85,12 @@ def show_time():
 
 def my_move(seconds):
     """
-    need to fix this thread
     :param seconds:
     :return:
     """
     client.move()
     global MOVE_COUNTER
     MOVE_COUNTER += 1
-    load_pok()
     time.sleep(seconds)
 
 
@@ -113,7 +111,6 @@ else:
 main_graph.load_agents(client.get_agents())
 my_agents = main_graph.agents  # list of all the agents
 startPoint = main_graph.center_point()
-
 
 thread = Thread(target=my_move, args=(1,), name="move_thread")
 
@@ -227,18 +224,18 @@ while client.is_running() == 'true':
             continue
         if float(dist) == 0.0:
             edge = pokemon.edge
-            if pokemon.type > 0:
-                client.choose_next_edge(
-                    '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(edge.dest) + '}')
-            else:
-                client.choose_next_edge(
-                    '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(edge.src) + '}')
+            client.choose_next_edge(
+                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(edge.src) + '}')
         else:
             client.choose_next_edge(
                 '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(path[1]) + '}')
 
             ttl = client.time_to_end()
             print(ttl, client.get_info())
-    client.move()
-    MOVE_COUNTER += 1
+            """
+            115 good
+            
+            """
+    my_move(0.135)
+    #  MOVE_COUNTER += 1
 # game over:
