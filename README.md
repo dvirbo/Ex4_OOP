@@ -31,6 +31,7 @@ The client has the following api (all json based):
 * Move the agents: this is the main method that “plays the game” - in order for an Agent to grab a pokemon, the agent needs to be on the same (directed edge) & the server should be called (move) when the Agent is “close-enough” to the pokemon - Note: the exact distance is not given.
 * Get the game info (getInfo): returns the grade, and the number of moves of the current game. This data is printed at the end of each game.
 *demonstration*:
+
 ![server](https://user-images.githubusercontent.com/73783656/148685551-acbb4e04-6b9f-478e-8447-ac4499767fcd.JPG)
 
 ## Run Locally
