@@ -123,7 +123,7 @@ thread = Thread(target=my_move, args=(1,), name="move_thread")
 client.start()
 thread.start()
 thread.join()
-
+timer = 0
 """
 The code below should be improved significantly:
 The GUI and the "algo" are mixed - refactoring using MVC design pattern is required.
@@ -234,16 +234,20 @@ while client.is_running() == 'true':
         if float(dist) == 0.0:
             client.choose_next_edge(
                 '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(pokemon.edge.src) + '}')
+            timer = 0.1115
         else:
             client.choose_next_edge(
                 '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(path[1]) + '}')
 
             ttl = client.time_to_end()
             print(ttl, client.get_info())
+            timer = 0.135
             """
-            
-            135 good
-            
+            t = 0.135
+            change the time that the "move" sleep in case that the agent stand on the src of the edge that
+            the pokemon is on
+            {"GameServer":{"pokemons":3,"is_logged_in":false,"moves":197,"grade":58,"game_level":8,"max_user_level":-1,"id":0,"graph":"data/A2","agents":1}}
+
             """
-    my_move(0.135)
+    my_move(timer)
 # game over:
