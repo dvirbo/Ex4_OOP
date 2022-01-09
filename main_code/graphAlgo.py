@@ -32,7 +32,7 @@ class GraphAlgo:
         self.pokemons = []
         self.agents = []
 
-    def load_json(self, file_name: str):
+    def load_json(self, file_name: str) -> bool:
         """
         Loads a graph from a json file.
         :param file_name: the json file
@@ -78,7 +78,7 @@ class GraphAlgo:
         finally:
             return flag
 
-    def load_agents(self, data: str):
+    def load_agents(self, data: str) -> bool:
         """
         :param data: str of all the agents in the game, the aim is to generate an object from them
         :return: update list of agents
@@ -103,7 +103,7 @@ class GraphAlgo:
         finally:
             return flag
 
-    def load_Pokemon(self, data: str):
+    def load_Pokemon(self, data: str) -> bool:
         """
         '{"Pokemons":[{"Pokemon":{"value":5.0,"type":-1,"pos":"35.197656770719604,32.10191878639921,0.0"} },...]}'
         :param data: str
@@ -128,7 +128,7 @@ class GraphAlgo:
         finally:
             return flag
 
-    def is_between(self, a, c, b):
+    def is_between(self, a, c, b) -> bool:
         """
         check if the point (c) is between a --> b
         :param a: src
@@ -138,7 +138,7 @@ class GraphAlgo:
         """
         return math.isclose(self.dist(a, c) + self.dist(c, b), self.dist(a, b), abs_tol=0.00000000000001)
 
-    def dist(self, a, b):
+    def dist(self, a, b) -> float:
         """
         calculate the dist between them (a & b)
         """

@@ -41,7 +41,7 @@ main_graph.load_json(graph_json)  # only one time..
 
 FONT = pygame.font.SysFont('Arial', 20, bold=True)
 max_x, min_x, max_y, min_y = main_graph.getMin()
-# need to change the path
+# LOAD AND SCALE ALL THE NEEDED PICTURES:
 programIcon = pygame.image.load("../pictures/icon.png")
 programIcon = pygame.transform.scale(programIcon, (35, 35))
 pygame.display.set_icon(programIcon)
@@ -206,7 +206,6 @@ while client.is_running() == 'true':
     data = json.loads(client.get_info())
     score = data["GameServer"]["grade"]
     show_score(score)
-
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
