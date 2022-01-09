@@ -36,7 +36,7 @@ The client has the following api (all json based):
 
 ## Run Locally
 
-Clone or Download this project\
+Clone or Download this project
 
 before you Start the server make sure that you have any java machine (JDK 11 or above)
 paste on terminal:
